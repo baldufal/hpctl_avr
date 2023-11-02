@@ -4,7 +4,7 @@ Software for Atmega**8 controller of HPCTL heating and ventilation controller pr
 We use it with Microchip Studio and Atmega328.
 
 # Task
-This mc is controlled by a ESP32 via I2C bus.
+This mc is controlled by a [ESP32](https://github.com/baldufal/hpctl_arduino/tree/main) via I2C bus.
 It drives 8 solid state relais (SSRs) and 8 mechanical relais and reports the state of 4 universal binary inputs.
 3 of the SSRs are connected to a heater. They are driven with very slow PWM with a period of 10s.
 The mechanical relais control two ventilators.
