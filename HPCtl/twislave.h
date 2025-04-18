@@ -14,10 +14,10 @@
 #include <stdint.h>
 
 // I2C data buffer size.
-// [0]: Heater Level (determines SSR0 to SSR2) (r/w)
+// [0]: Heater Level (determines SSR5 to SSR7) (r/w)
 // [1]: Ventilation IN (r/w)
-// [2]: Ventilation OUT (r/w)
-// [3]: SSR0 to SSR4 values (r/w)
+// [2]: Ventilation OUT (r/w) (determines SSR3)
+// [3]: SSR0 to SSR2 & SSR4 values (r/w)
 // [4]: checksum byte (r)
 // [5]: Input values and complement (r/w)
 //
@@ -43,7 +43,6 @@ void init_twi_slave(uint8_t addr);
 #error "This library requires AVR-GCC 3.4.5 or later, update to newer AVR-GCC compiler"
 #endif
 
-//Schutz vor unsinnigen Buffergroessen
 #if (i2c_buffer_size > 254)
 #error buffer size needs to be less than 254.
 #endif

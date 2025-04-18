@@ -124,7 +124,8 @@ static void set_air_in(uint8_t level) {
 	PORTD = reg_d;
 }
 
-
+// This is not needed anymore because the ventilator is controlled via PWM on SSR3.
+/*
 static void set_air_out(uint8_t level) {
 	uint8_t reg_b = MASK_OUT_B;
 	
@@ -154,6 +155,7 @@ static void set_air_out(uint8_t level) {
 	reg_b = reg_b | (PORTB & ~MASK_OUT_B);
 	PORTB = reg_b;
 }
+*/
 
 
 #endif //FAN_CONTROL_RELAY_H

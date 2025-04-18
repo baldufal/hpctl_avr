@@ -93,16 +93,15 @@ ISR (TWI_vect) {
 				
 				case 2:
 				// Vent OUT
-				if(data <= 4)
 				i2cdata[buffer_addr] = data;
 				break;
 				
 				case 3:
 				// SSRs
 				
-				// Top 3 bits are write protected because they are set by heater value.
-				i2cdata[buffer_addr] &= 0b11100000;
-				i2cdata[buffer_addr] |= (data & 0b00011111);
+				// Some bits are write protected because they are set by heater level and ventilator PWM.
+				i2cdata[buffer_addr] &= 0b11101000;
+				i2cdata[buffer_addr] |= (data & 0b00010111);
 				break;
 				
 				// Ignore writes to other addresses
@@ -127,7 +126,7 @@ ISR (TWI_vect) {
 
 		//0xA8 SLA+R received, ACK returned
 		case TW_ST_SLA_ACK:
-		// fallthrough
+		// fall through
 
 		// 0xB8 data transmitted, ACK received
 		case TW_ST_DATA_ACK:

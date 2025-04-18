@@ -2,6 +2,7 @@
 * HPCtl.c
 *
 * Created: 05.10.2023 19:40:37
+* For Atmega168
 * Author : falkb
 */
 
@@ -31,7 +32,8 @@ static void io_init() {
 	// We use pull ups anyway to make debugging without external pull ups easier.
 	
 	// Outputs:
-	// PD0..PD4:			General purpose SSRs
+	// PD0..PD2, PD4:		General purpose SSRs
+	// PD3:					Ventilation PWM
 	// PD5, PB6, PB7:		Heater SSRs
 	// PD6, PD7, PB0..PB5:	Relais
 	
@@ -53,7 +55,7 @@ static void io_init() {
 	
 }
 
-static void init_timer() {
+static void init_heater_timer() {
 	// See http://www.8bit-era.cz/arduino-timer-interrupts-calculator.html
 	// Or https://www.arduinoslovakia.eu/application/timer-calculator
 
@@ -69,8 +71,21 @@ static void init_timer() {
 	// Set CS12, CS11 and CS10 bits for 256 prescaler
 	TCCR1B |= (1 << CS12);
 	// enable timer compare interrupt
-	TIMSK |= (1 << OCIE1A);
+	TIMSK1 |= (1 << OCIE1A); // Atmega8: TIMSK |= (1 << OCIE1A);
 }
+
+void init_vent_pwm_timer() {
+	// Set initial duty cycle to 0/255
+	OCR2B = 0;
+	
+	// Fast PWM Mode (WGM22:0 = 3), non-inverting mode on OC2B
+	TCCR2A = (1 << COM2B1) | (1 << WGM21) | (1 << WGM20);
+	
+	// f_pwm = f_clk / (Prescaler * 256)
+	// Prescaler = 32 => 980Hz
+	TCCR2B = (1 << CS21) | (1 << CS20);
+}
+
 
 // Reads input pins PC0..PC3
 static void readout() {
@@ -131,7 +146,7 @@ static void set_heater(uint8_t level, uint8_t pwm_counter){
 		}
 	}
 
-	// Expose ssr state to i2c.
+	// Expose SSR state to i2c.
 	cli();
 	i2cdata[3] &= 0b00011111;
 	if(PORTB & (1<<PORTB6))
@@ -151,6 +166,10 @@ static void set_ssrs(uint8_t value){
 	PORTD = (PORTD & ~mask_reg_d) | value;
 }
 
+static void set_air_out(uint8_t	value){
+	OCR2B = value;
+}
+
 ISR(TIMER1_COMPA_vect) // every 1s
 {
 	timer_ticks = (timer_ticks + 1) % (PWM_PERIOD_SECONDS * PWM_TICK_FREQUENCY_HZ);
@@ -166,9 +185,10 @@ int main(void)
 	init_twi_slave(I2C_SLAVE_ADDRESS);
 	// Read input values
 	readout();
-	// Init timer
-	init_timer();
-	
+	// Init 1Hz timer for the 3 heater SSRs
+	init_heater_timer();
+	// Init timer2 for ventilation PWM
+	init_vent_pwm_timer();
 	// Enable Interrupts.
 	sei();
 	
